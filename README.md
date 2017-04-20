@@ -18,7 +18,7 @@ Offer - Offer object
 PurchaseLink - Object for payment page redirection
 
 
-### Merchant API
+### Merchant API
 
 GET    /offers/{id}  -  query offers
 
