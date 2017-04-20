@@ -3,7 +3,7 @@
 REST API example for Mecrhants to provide offers for sale
 
 
-Components:
+## Components:
 
 MerchantAPIServer - Grizzly HTTP server to run the API
 
@@ -18,7 +18,7 @@ Offer - Offer object
 PurchaseLink - Object for payment page redirection
 
 
-Merchant API
+## Merchant API
 
 GET    /offers/{id}  -  query offers
 
@@ -29,7 +29,7 @@ PUT    /offers/{id}  -  update offer
 DELETE /offers/{id}  -  delete offer
 
 
-Query API
+## Query API
 
 GET    /offers/{id}  -  query offer
 
