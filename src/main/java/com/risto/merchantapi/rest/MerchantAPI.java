@@ -11,18 +11,23 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Path("/merchant/api/v1")
 public class MerchantAPI {
 
-	// TODO use dependency injection, remove static,  and add a proper database
-	protected static OfferDatastore datastore = new OfferDatastore();
+	// TODO add a proper database
+	protected OfferDatastore datastore;
 
+	private Logger logger = LoggerFactory.getLogger("com.risto.merchantapi.rest.MerchantAPI");
+    
+	
 	// TODO get from authentication token
 	protected static final String testMerchantCode = "TESTMERCHANT";
 	
-	// TODO dependency injection, remove static
-	protected static void setDatastore(OfferDatastore datastore) {
-		MerchantAPI.datastore = datastore;
+	public MerchantAPI() {
+		datastore = GuiceInjector.getInjector().getInstance(OfferDatastore.class);
 	}
 	
 	
@@ -44,9 +49,12 @@ public class MerchantAPI {
     @GET
     @Consumes(MediaType.TEXT_PLAIN)
     @Produces(MediaType.APPLICATION_JSON)
-    public Offer getOffer(@PathParam("id") long id) {
-		Offer offer = datastore.getOfferById(testMerchantCode, id);
-    	return offer;
+    public Response getOffer(@PathParam("id") long id) {
+    	Offer offer = datastore.getOfferById(testMerchantCode, id);
+    	if (offer == null) {
+    		return Response.status(Response.Status.NOT_FOUND).entity("Offer not found").build();
+    	}
+        return Response.ok(offer, MediaType.APPLICATION_JSON).build();
     }
     
 	
@@ -62,7 +70,8 @@ public class MerchantAPI {
 		Offer offer = datastore.createOffer(testMerchantCode);
 		offer.update(offerData);
 		datastore.updateOffer(testMerchantCode, offer);
-        return offer;
+        logger.info("Offer " + offer.getId() + " created.");
+		return offer;
     }
     
 	
@@ -83,6 +92,7 @@ public class MerchantAPI {
     	Offer offer = datastore.getOfferById(testMerchantCode, id);
         offer.update(offerData);
         datastore.updateOffer(testMerchantCode, offer);
+        logger.info("Offer " + offer.getId() + " updated.");
         return Response.status(Response.Status.OK).build();
     }
 
@@ -101,6 +111,7 @@ public class MerchantAPI {
     	}
 
         datastore.deleteOfferById(testMerchantCode, id);
+        logger.info("Offer " + id + " deleted.");
         return Response.status(Response.Status.OK).build();
     }
 

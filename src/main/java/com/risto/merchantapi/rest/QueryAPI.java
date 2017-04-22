@@ -10,6 +10,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Guice;
 
 /**
  * API to list and purchase offers
@@ -19,16 +25,19 @@ import javax.ws.rs.core.MediaType;
 @Path("/query/api/v1")
 public class QueryAPI {
 
-	// TODO use dependency injection, remove static,  and add a proper database
-	protected static OfferDatastore datastore = new OfferDatastore();
+	// TODO add a proper database
+	protected OfferDatastore datastore;
 
+	private Logger logger = LoggerFactory.getLogger("com.risto.merchantapi.rest.QueryAPI");
+
+	
 	// TODO get from authentication token
 	protected static final String testMerchantCode = "TESTMERCHANT";
 	
-	// TODO dependency injection, remove static
-	protected static void setDatastore(OfferDatastore datastore) {
-		MerchantAPI.datastore = datastore;
+	public QueryAPI() {
+		datastore = GuiceInjector.getInjector().getInstance(OfferDatastore.class);
 	}
+	
 	
 	/**
 	 * Get Offer by id
@@ -39,11 +48,14 @@ public class QueryAPI {
     @GET
     @Consumes(MediaType.TEXT_PLAIN)
     @Produces(MediaType.APPLICATION_JSON)
-    public Offer getOffer(@PathParam("id") long id) {
+    public Response getOffer(@PathParam("id") long id) {
     	Offer offer = datastore.getOfferById(testMerchantCode, id);
-        return offer;
+    	if (offer == null) {
+    		return Response.status(Response.Status.NOT_FOUND).entity("Offer not found").build();
+    	}
+        return Response.ok(offer, MediaType.APPLICATION_JSON).build();
     }
-    
+
 
 	/**
 	 * List all Offers
@@ -58,10 +70,16 @@ public class QueryAPI {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public List<Offer> listOffers(@QueryParam("merchant") String merchant, 
-    		@QueryParam("offset") long offset, 
-    		@QueryParam("limit") long limit, 
+    		@QueryParam("offset") int offset, 
+    		@QueryParam("limit") int limit, 
     		@QueryParam("search") String search) {
-		return datastore.getAllOffers(testMerchantCode);
+		List<Offer> lst = datastore.getAllOffers(testMerchantCode);
+		if (offset > 0 || limit > 0) {
+			lst = lst.subList(offset, offset+limit);
+		}
+		// TODO add Java8 filter to merchant filtering, or with database
+		// TODO implement search with proper database
+		return lst;
     }
     
 
@@ -84,7 +102,9 @@ public class QueryAPI {
     	link.setOrderCode(orderCode);
     	
     	link.setPaymentPage("https://paymentpage.com/purchase/api/v1/purchaseOffer");
-        return link;
+
+        logger.info("Offer " + id + " purchased.");
+    	return link;
     }
 
 }

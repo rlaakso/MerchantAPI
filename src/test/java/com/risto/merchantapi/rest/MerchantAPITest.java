@@ -6,13 +6,14 @@ import javax.ws.rs.core.Response;
 
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.risto.merchantapi.MerchantAPIServer;
 import com.risto.merchantapi.rest.MerchantAPI;
 import com.risto.merchantapi.rest.Offer;
-import com.risto.merchantapi.rest.OfferDatastore;
+import com.risto.merchantapi.rest.OfferDatastoreImpl;
 
 /**
  * Test Merchant REST API
@@ -21,22 +22,17 @@ import com.risto.merchantapi.rest.OfferDatastore;
  */
 public class MerchantAPITest extends AbstractOfferAPITest {
 
-	static OfferDatastore datastore;
+	private OfferDatastore datastore;
 	
 	/**
 	 * Setup REST server
 	 * @throws Exception
 	 */
 	@BeforeClass
-	public static void setUp() throws Exception {
+	public static void setUpClass() throws Exception {
 		MerchantAPIServer.startServer();
 		
-		api = ResteasyClientBuilder.newClient().target(MerchantAPIServer.BASE_URI + "merchant/api/v1/offers");
-
-		datastore = new OfferDatastore();
-		MerchantAPI.setDatastore(datastore);
 	}
-
 	
 	/**
 	 * Shutdown REST server
@@ -47,6 +43,13 @@ public class MerchantAPITest extends AbstractOfferAPITest {
 		MerchantAPIServer.shutdownServer();
 	}
 
+	
+	@Before
+	public void setup() throws Exception {
+		merchantApi = ResteasyClientBuilder.newClient().target(MerchantAPIServer.BASE_URI + "merchant/api/v1/offers");
+		datastore = GuiceInjector.getInjector().getInstance(OfferDatastore.class);
+	}
+	
 
 	/**
 	 * Create an offer.
@@ -72,7 +75,7 @@ public class MerchantAPITest extends AbstractOfferAPITest {
 		long offerId = createOffer(newOffer());
 
 		// get offer by id
-		Response resp = api.path("/" + offerId).request().buildGet().invoke();
+		Response resp = merchantApi.path("/" + offerId).request().buildGet().invoke();
 		assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
 		Offer respOffer = resp.readEntity(Offer.class);
 		assertEquals(respOffer.getId(), offerId);
@@ -90,7 +93,7 @@ public class MerchantAPITest extends AbstractOfferAPITest {
 		long offerId = createOffer(newOffer());
 
 		// get offer by id
-		Response resp = api.path("/" + offerId).request().buildGet().invoke();
+		Response resp = merchantApi.path("/" + offerId).request().buildGet().invoke();
 		assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
 		Offer respOffer = resp.readEntity(Offer.class);
 		assertEquals(respOffer.getPrice(), 100);
@@ -101,7 +104,7 @@ public class MerchantAPITest extends AbstractOfferAPITest {
 		updateOffer(respOffer);
 		
 		// get offer by id
-		resp = api.path("/" + offerId).request().buildGet().invoke();
+		resp = merchantApi.path("/" + offerId).request().buildGet().invoke();
 		assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
 		respOffer = resp.readEntity(Offer.class);
 		assertEquals(respOffer.getPrice(), 100);
@@ -118,7 +121,7 @@ public class MerchantAPITest extends AbstractOfferAPITest {
 		long offerId = createOffer(newOffer());
 		
 		// get offer by id
-		Response resp = api.path("/" + offerId).request().buildGet().invoke();
+		Response resp = merchantApi.path("/" + offerId).request().buildGet().invoke();
 		assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
 		Offer respOffer = resp.readEntity(Offer.class);
 		assertEquals(respOffer.getPrice(), 100);
@@ -128,7 +131,7 @@ public class MerchantAPITest extends AbstractOfferAPITest {
 		deleteOffer(offerId);
 		
 		// get offer by id
-		resp = api.path("/" + offerId).request().buildGet().invoke();
+		resp = merchantApi.path("/" + offerId).request().buildGet().invoke();
 		assertEquals(Response.Status.NOT_FOUND.getStatusCode(), resp.getStatus());
 	}
 

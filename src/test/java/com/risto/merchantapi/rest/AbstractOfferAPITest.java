@@ -17,7 +17,7 @@ import com.risto.merchantapi.rest.Offer;
  */
 public abstract class AbstractOfferAPITest {
 	
-	protected static WebTarget api;
+	protected static WebTarget merchantApi;
 	
 	/**
 	 * Create a new offer instance
@@ -60,7 +60,7 @@ public abstract class AbstractOfferAPITest {
 		Entity<Offer> testEnt = Entity.json(testOffer);
 		
 		// test creation
-		Response resp = api.request().buildPost(testEnt).invoke();
+		Response resp = merchantApi.request().buildPost(testEnt).invoke();
 		assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
 		
 		// get offer id from response
@@ -79,12 +79,8 @@ public abstract class AbstractOfferAPITest {
 		Entity<Offer> testEnt = Entity.json(testOffer);
 		
 		// test update
-		Response resp = api.path("/" + testOffer.getId()).request().put(testEnt);
-		assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
-		
-		// get status from response
-		String status = resp.readEntity(String.class);
-		assertEquals("true", status);
+		Response resp = merchantApi.path("/" + testOffer.getId()).request().put(testEnt);
+		assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());		
 	}
 
 	/**
@@ -93,12 +89,8 @@ public abstract class AbstractOfferAPITest {
 	 */
 	protected void deleteOffer(long offerId) {
 		// test deletion
-		Response resp = api.path("/" + offerId).request().buildDelete().invoke();
-		assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
-	
-		// get status from response
-		String status = resp.readEntity(String.class);
-		assertEquals("true", status);
+		Response resp = merchantApi.path("/" + offerId).request().buildDelete().invoke();
+		assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());	
 	}
 	
 }
